@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+<style> /* set the CSS */
+
+  body { 
+      font: 11px sans-serif;
+    }
+
+    .axis path,
+    .axis line {
+      fill: none;
+      stroke: #000;
+      shape-rendering: crispEdges;
+    }
+
+    .line {
+      fill: none;
+      stroke: steelblue;
+      stroke-width: 2.5px;
+    }
+
+    div.title {
+      top: 2%;
+      position: fixed;
+      left: 3%;
+      font-size: 2.2em;
+    }
+
+    div.tooltip {
+      position: absolute;
+      width: 250px;
+      padding: 3px;
+      font: 12px sans-serif;
+      background: #B2C9D5;
+      border: 0px;
+      border-radius: 8px;
+    }
+
+    .parenthesis {
+      font-size: 0.5em;
+      color: grey;
+    }
+
+    .grid .tick {
+      stroke: lightgrey;
+      opacity: 0.5;
+    }
+    .grid path {
+      stroke-width: 0;
+    }
+</style>
+<title>Tweets</title>
+<body>
+<div class="title">Tweets<span class="parenthesis">(per ten minutes)</span>
+</div>
+
+<!-- load the d3.js library -->    
+<script src="http://d3js.org/d3.v3.min.js"></script>
+
+
+<script>
+// Set the dimensions of the canvas / graph
+var margin = {top: 60, right: 10, bottom: 40, left: 50},
+        width = 1300 - margin.left - margin.right,
+        height = 500 - margin.top - margin.bottom;
+
+// Parse the date / time 2015-08-13 12:35:56
+var parseDate = d3.time.format("%Y-%m-%d %H:%M:%S").parse;
+
+// Set the ranges
+var x = d3.time.scale()
+        .range([0, width]);
+var y = d3.scale.linear()
+        .range([height, 0]);
+
+var xAxis = d3.svg.axis()
+              .scale(x)
+              .ticks(10)
+              .orient("bottom");
+
+var yAxis = d3.svg.axis()
+              .scale(y)
+              .ticks(7)
+              .orient("left");
+
+
+// Define the line
+var valueline = d3.svg.line()
+        //.interpolate("cardinal")   
+        .x(function(d) { return x(d.date); })
+        .y(function(d) { return y(d.amount); });
+    
+// Adds the svg canvas
+ var svg = d3.select("body").append("svg")
+        .attr("class", "graph")
+        .attr("width", width + margin.left + margin.right)
+        .attr("height", height + margin.top + margin.bottom)
+      .append("g")
+        .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+
+var div = d3.select("body").append("div")
+        .attr("class", "tooltip")
+        .style("opacity", 0);
+
+// Grid
+function make_x_axis() {        
+    return d3.svg.axis()
+             .scale(x)
+             .orient("bottom")
+             .ticks(d3.time.days, 1)
+};
+
+function make_y_axis() {
+    return d3.svg.axis()
+            .scale(y)
+            .orient("left")
+            .ticks(5)
+};
+
+// Get the data
+d3.json("data.php", function(error, data) {
+    data.forEach(function( d) {
+        d.date = parseDate(d.date);
+        d.amount = +d.amount;
+    });
+
+  // Scale the range of the data
+  x.domain(d3.extent(data, function(d) { return d.date; }));
+  //y.domain(d3.extent(data, function(d) { return d.amount; }));
+  y.domain([0, d3.max(data, function(d) { return d.amount; })]);
+      
+  svg.append("g")
+      .attr("class", "grid")
+      .attr("transform", "translate(0," + height + ")")
+      .call(make_x_axis()
+        .tickSize(-height, 0, 0)
+        .tickFormat("")
+      )
+
+  svg.append("g")
+      .attr("class", "grid")
+      .call(make_y_axis()
+        .tickSize(-width, 0, 0)
+        .tickFormat("")
+      )
+
+  svg.append("g")
+      .attr("class", "x axis")
+      .attr("transform", "translate(0," + height + ")")
+      .call(xAxis);
+
+  svg.append("g")
+      .attr("class", "y axis")
+      .call(yAxis)
+    .append("text")
+      .attr("transform", "rotate(-90)")
+      .attr("y", 6)
+      .attr("dy", ".71em")
+      .style("text-anchor", "end")
+      .text("Amount of tweets / ten minutes");
+
+  svg.append("path")
+      .datum(data)
+      .attr("class", "line")
+      .attr("d", valueline(data));
+
+  svg.append("text")             // text label for the x axis
+    .attr("transform",
+      "translate(" + (width/2) + " ," + 
+                     (height + margin.bottom - 10) + ")")
+    .style("color", "lightgrey")
+    .text("Time")
+
+  svg.selectAll("dot")    // peak dots and on mousedown LDA result boxes
+      .data(data)
+    .enter().append("circle")
+    .filter(function(d) { return d.info})
+      .attr("r", 5) 
+      .attr("class", "circle")
+      .attr("cx", function(d) { return x(d.date); })
+      .attr("cy", function(d) { return y(d.amount); })
+      .on("mousedown", function(d) {
+          div.transition()
+              .duration(200)
+              .style("opacity", .9);
+          div.html(d.info)
+              .style("left", (d3.event.pageX) + "px")
+              .style("top", (d3.event.pageY) + "px")
+              .style("pointer-events", "all")
+          })
+      .on("mouseup", function(d) {
+          div.transition()
+              .duration(500)
+              .style("opacity", 0)
+              .style("pointer-events", "none");
+      });
+      
+      });
+
+var inter = setInterval(function() {
+                updateData();
+        }, 20000); 
+
+// Update data section (Called from the onclick)
+function updateData() {
+
+    // Get the data again
+ d3.json("data.php", function(error, data) {
+    data.forEach(function(d) {
+        d.date = parseDate(d.date);
+        d.amount = +d.amount;
+    });
+
+      // Scale the range of the data again 
+      x.domain(d3.extent(data, function(d) { return d.date; }));
+      y.domain([0, d3.max(data, function(d) { return d.amount; })]);
+      //y.domain(d3.extent(data, function(d) { return d.amount; }));
+
+      // Select the section we want to apply our changes to
+      var svg = d3.select("body").transition();
+
+      // Make the changes
+      svg.select(".line")   // change the line
+          .duration(750)
+          .attr("d", valueline(data));
+      svg.select(".x.axis") // change the x axis
+          .duration(750)
+          .call(xAxis);
+      svg.select(".y.axis") // change the y axis
+          .duration(750)
+          .call(yAxis);      
+
+      svg.selectAll(".circle") // change the circle
+          .duration(750)
+          .attr("cx", function(d) { return x(d.date); })
+          .attr("cy", function(d) { return y(d.amount); });
+
+    });
+}
+
+</script>
+</body>
