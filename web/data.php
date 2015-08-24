@@ -2,7 +2,7 @@
   $username = "myuser"; 
   $password = "mypassword";   
   $host = "localhost";
-  $database="Tweets";
+  $database="default";
     
   $mysqli = new mysqli($host, $username, $password, $database);
   $mysqli->set_charset('utf8');
@@ -13,7 +13,7 @@
   }
 
   $query = "SELECT tweets.partition AS date, count(*) AS amount, LDAResults.LDA AS info 
-            FROM tweets LEFT JOIN LDAResults ON tweets.partition=LDAResults.peak_at GROUP BY date;";
+            FROM Tweets LEFT JOIN LDAResults ON tweets.partition=LDAResults.peak_at GROUP BY date;";
 
 
   $myArray = array();

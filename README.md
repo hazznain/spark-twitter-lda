@@ -50,7 +50,7 @@ mysql&gt; CREATE TABLE tweets(
 -&gt; partition TIMESTAMP ); 
 </pre> 
 
-To keep your database from blowing up I suggest you make somekind of cleaning event that removes every day x days old data.
+To keep your database from blowing up I suggest you make some kind of cleaning event that removes every day x days old data.
 
 Setup Apache Spark and the App
 --------------------------------------------
@@ -69,6 +69,7 @@ Launch Apache Spark standalone server.
 cd /path/to/spark
 sbin/start-all.sh
 </pre>
+
 You need to start this application at even 10minutes for the peak detection to work correctly.
 Launch App with command:
 <pre>
