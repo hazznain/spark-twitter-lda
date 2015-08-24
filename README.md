@@ -32,8 +32,7 @@ MySQL
 Install MySQL, log in and then create an user that you want the app to use, and grant it permissions.  
 Then do the following command:
 <pre>
-mysql&gt; CREATE DATABASE tweets;  
-mysql&gt; USE tweets;
+mysql&gt; USE default;
 </pre>  
 Spark creates the tables if it doesn't find them in the given database.  But if you want you can make them with these commands
 <pre>
@@ -41,7 +40,7 @@ mysql&gt; CREATE TABLE LDAResults(
 -&gt; peak_at TIMESTAMP, 
 -&gt; LDA TEXT,  
 -&gt; hashtags TEXT );
-mysql&gt; CREATE TABLE tweets(
+mysql&gt; CREATE TABLE Tweets(
 -&gt; username TEXT,
 -&gt; created_at TIMESTAMP, 
 -&gt; text TEXT,
