@@ -72,7 +72,7 @@ sbin/start-all.sh
 You need to start this application at even 10minutes for the peak detection to work correctly.
 Launch App with command:
 <pre>
-./bin/spark-submit --class main.scala.Launcher -master spark://localhost.localdomain:7077 /path/to/sparktwitterlda.jar
+./bin/spark-submit --class main.scala.Launcher --master spark://localhost.localdomain:7077 /path/to/sparktwitterlda.jar
 </pre>
 
 Visualize your data
